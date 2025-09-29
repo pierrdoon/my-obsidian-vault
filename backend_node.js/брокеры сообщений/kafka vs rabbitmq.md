@@ -1,5 +1,7 @@
 [Оригинал статьи](https://habr.com/ru/companies/innotech/articles/698838/)
 
+[[kafka|kafka]] vs [[RabbitMQ|rabbitmq]]
+
 ---
 
 ## Какие бывают виды общения?

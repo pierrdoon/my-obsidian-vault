@@ -1,6 +1,6 @@
 
 
-В JavaScript есть два основных способа обработки асинхронного кода: Promise (ES6) и async / await (ES7). Эти синтаксисы дают нам равные базовые функции, но по-разному влияют на читаемость и область видимости. В этой статье мы увидим, как один синтаксис помогает, а другой отправляет нас в callback hell! Материал адаптирован на русский язык совместно с Тимофеем Тиуновым, системным архитектором в Сбермегамаркете и автором курса “JavaScript” в Skillbox.
+В [[Что такое JavaScript (Основы и Подкапотные Особенности)|JavaScript]] есть два основных способа обработки асинхронного кода: Promise (ES6) и async / await (ES7). Эти синтаксисы дают нам равные базовые функции, но по-разному влияют на читаемость и область видимости. В этой статье мы увидим, как один синтаксис помогает, а другой отправляет нас в callback hell! Материал адаптирован на русский язык совместно с Тимофеем Тиуновым, системным архитектором в Сбермегамаркете и автором курса “JavaScript” в Skillbox.
 
 **Тимофей Тиунов:** _“На самом деле основных способов обработки асинхронного кода три,_ — _есть ещё коллбэки. Суть третьего подхода в том, что вы просто передаете функцию как аргумент при вызове другой функции. Например, так работает addEventListener. В современном JavaScript этот способ занял свое место именно в обработке событий, а для написания кода, в котором нужно дождаться выполнения какой-то операции, он оказался неудобным и громоздким. Поэтому с развитием языка появился сначала Promise, а затем синтаксис с async/await”._ 
 
@@ -22,9 +22,7 @@ then, catch и finally — методы объекта Promise, они объ
 
 ```js
 const greeting = new Promise((resolve, reject) => {  
-
 	resolve("Hello!");
-
 });
 ```
 
@@ -32,23 +30,16 @@ const greeting = new Promise((resolve, reject) => {  
 
 ```js
 greeting  
-
 	.then((value) => {    
-	
 		console.log("The Promise is resolved!", value);  
-		
 	})  
 	
 	.catch((error) => {    
-	
 		console.error("The Promise is rejected!", error);  
-		
 	})  
 	
 	.finally(() => {    
-	
 		console.log("The Promise is settled, meaning it has been resolved or rejected.");  
-		
 	});
 ```
 
@@ -59,12 +50,14 @@ greeting  
 ```js
 fetch(url)
 	.then((response) => response.json())  
+	
     .then((data) => {    
 		return {      
 			data: data,      
 		    status: response.status,    
 		};  
 	})  
+	
 	.then((res) => {    
 		console.log(res.data, res.status);  
 	});
@@ -82,15 +75,11 @@ async и await — это синтаксический сахар поверх P
 
 ```js
 async function doSomethingAsynchronous() {  
-
 	// logic
-	
 }
 
 const doSomethingAsynchronous = async () => {  
-
 	// logic
-	
 };
 ```
 
@@ -98,9 +87,7 @@ await можно написать перед любой асинхронной �
 
 ```js
 async function doSomethingAsynchronous() {  
-
 	const value = await greeting;
-	
 }
 ```
 
@@ -123,7 +110,6 @@ async function doSomethingAsynchronous() {  
 		console.log("The Promise is settled, meaning it has been resolved or rejected.");  
 		
 	}
-	
 }
 ```
 
@@ -131,9 +117,7 @@ async function doSomethingAsynchronous() {  
 
 ```js
 async function getGreeting() {  
-
 	return greeting;
-	
 }
 ```
 
@@ -149,15 +133,10 @@ return await res.json(); // тут await можно убрать”.
 
 ```js
 async function getGreeting() {  
-
 	try {    
-	
 		return await greeting;  
-		
 	} catch (e) {    
-	
 		console.error(e);  
-		
 	}
 }
 ```
@@ -177,12 +156,29 @@ async function getGreeting() {  
 
 Объекты выглядят следующим образом:
 
-- `Author: { id: "3b4ab205", name: "Frank Herbert Jr.", bioId: "1138089a" }`
+-  ```json
+  Author: { 
+	 id: "3b4ab205", 
+	 name: "Frank Herbert Jr.", 
+	 bioId: "1138089a" 
+  }
+```
     
-- `Book: { id: "e31f7b5e", title: "Dune", authorId: "3b4ab205" }`
+- ```json
+  Book: { 
+	  id: "e31f7b5e", 
+	  title: "Dune", 
+	  authorId: "3b4ab205" 
+  }
+  ```
     
-- `Bio: { id: "1138089a", description: "Franklin Herbert Jr. was an American science-fiction author..." }`
-    
+- ```json
+  Bio: { 
+	  id: "1138089a", 
+	  description: "Franklin Herbert Jr. was an American science-fiction author..." 
+  }
+  ```
+
 
 Также нам понадобится вспомогательная функция filterProlificAuthors, которая принимает все записи и все книги в качестве аргументов и возвращает идентификаторы авторов с более чем 10 книгами:
 
@@ -190,11 +186,9 @@ async function getGreeting() {  
 function filterProlificAuthors(authors, books, minBookCount = 10) {  
 
 	return authors.filter(    
-	
 		({ id }) => books.filter(({ authorId }) => authorId === id).length > minBookCount  
 		
 	);
-	
 }
 ```
 
@@ -235,8 +229,7 @@ getAuthors().then((authors) =>  
 			
 			// Do something with the bios    
 			
-		})
-			
+		})	
 );
 ```
 
@@ -328,23 +321,16 @@ const [authors, books] = await Promise.all([
 async function getBios() {  
 
 	const authors = await getAuthors();  
-	
 	const books = await getBooks();  
 	
 	const prolificAuthorIds = filterProlificAuthors(authors, books);  
-	
 	const bios = await Promise.all(prolificAuthorIds.map((id) => getBio(id)));  
 	
 	const result = {    
-	
 		bios,    
-		
 		totalAuthors: authors.length,    
-		
 		totalBooks: books.length,  
-		
 	};
-	
 }
 ```
 
@@ -388,29 +374,19 @@ getAuthors().then((authors) =>  
 getAuthors().then((authors) =>  
 
 	getBooks()    
-	
 	.then((books) => [books, filterProlificAuthors(authors, books)])    
 	
 	.then(([books, ids]) =>      
-	
 		Promise.all([books, ...ids.map((id) => getBio(id))])    
-		
 	)    
 	
 	.then(([books, bios]) => {      
-	
 		const result = {        
-		
 			bios,        
-			
 			totalAuthors: authors.length,        
-			
 			totalBooks: books.length,      
-			
-		};    
-		
+		}; 
 	})
-	
 );
 ```
 
@@ -428,19 +404,12 @@ Promise.all([getAuthors(), getBooks()]).then(([authors, books]) => {  
 	const prolificAuthorIds = filterProlificAuthors(authors, books);  
 	
 	return Promise.all(prolificAuthorIds.map((id) => getBio(id))).then((bios) => {    
-	
 		const result = {      
-	
 			bios,      
-		
 			totalAuthors: authors.length,      
-		
 			totalBooks: books.length,    
-		
 		};  
-	
 	});
-	
 });
 ```
 
@@ -456,15 +425,10 @@ async function getBios() {
 	const bios = await Promise.all(prolificAuthorIds.map((id) => getBio(id)));  
 	
 	const result = {    
-		
 		bios,    
-			
 		totalAuthors: authors.length,    
-			
 		totalBooks: books.length,  
-			
 	};
-		
 }
 ```
 

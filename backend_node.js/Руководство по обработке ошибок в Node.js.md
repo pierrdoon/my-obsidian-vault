@@ -9,7 +9,7 @@
 
 Однако именно такая стратегия делает жизнь проще. Цель статьи — познакомить вас с этими шаблонами для создания, доставки и обработки потенциальных ошибок. Шаблоны помогут обнаружить и обработать потенциальные ошибки в коде до развёртывания.
 
-### Что такое ошибки в Node.js
+### Что такое ошибки в [[node.js|Node.js]]
 
 Ошибка в Node.js — это любой экземпляр объекта Error. Общие примеры включают встроенные классы ошибок: `ReferenceError`, `RangeError`, `TypeError`, `URIError`, `EvalError` и `SyntaxError`. Пользовательские ошибки также можно создать путём расширения базового объекта Error, встроенного класса ошибки или другой настраиваемой ошибки. При создании ошибок таким путём нужно передать строку сообщения, описывающую ошибку. К сообщению можно получить доступ через свойство `message` объекта. Объект `Error` также содержит свойства `name` и `stack`, которые указывают имя ошибки и точку в коде, в которой объект создаётся.
 
@@ -17,12 +17,9 @@
 const userError = new TypeError("Something happened!");
 
 console.log(userError.name); // TypeError
-console.log(userError.message); // Something happened!
+console.log(userError.message);// Something happened!
 console.log(userError.stack);
-/*TypeError: Something happened!    
-	at Object.<anonymous> (/home/ayo/dev/demo/main.js:2:19)    
-	<truncated for brevity>    
-	at node:internal/main/run_main_module:17:47 */
+/*TypeError: Something happened!    at Object.<anonymous> (/home/ayo/dev/demo/main.js:2:19)    <truncated for brevity>    at node:internal/main/run_main_module:17:47 */
 ```
 
 Функции объекта Error можно передать или вернуть из функции. Если бросить его с помощью `throw`, объект Error станет исключением. Когда вы передаёте ошибку из функции, она переходит вверх по стеку, пока исключение не будет поймано. В противном случае `uncaught exception` может обвалить всю работу.
@@ -35,33 +32,14 @@ console.log(userError.stack);
 
 Чаще всего ошибки функций обрабатывают путём генерации. В этом случае ошибка становится исключением, после чего её можно поймать где-нибудь в стеке с помощью блока `try / catch`. Если у ошибки есть разрешение всплывать в стеке, не будучи перехваченной, она преобразуется в формат `uncaughtException`, что приводит к преждевременному завершению работы приложения. Например, встроенный метод `JSON.parse ()` выдаёт ошибку, если строковый аргумент не является допустимым объектом JSON.
 
-```js
-function parseJSON(data) {  
-	return JSON.parse(data);
-}
-
-try {  
-	const result = parseJSON('A string');
-} catch (err) {  
-	console.log(err.message); // Unexpected token A in JSON at position 0
-}
+```
+function parseJSON(data) {  return JSON.parse(data);}try {  const result = parseJSON('A string');} catch (err) {  console.log(err.message); // Unexpected token A in JSON at position 0}
 ```
 
 Для использования этого шаблона в функциях нужно добавить ключевое слово `throw` перед экземпляром ошибки. Этот шаблон сообщения об ошибках и обработки идиоматичен для функций, выполняющих синхронные операции.
 
-```js
-function square(num) {  
-	if (typeof num !== 'number') {    
-		throw new TypeError(`Expected number but got: ${typeof num}`);  
-	}  
-	return num * num;
-}
-
-try {  
-	square('8');
-} catch (err) {  
-	console.log(err.message); // Expected number but got: string
-}
+```
+function square(num) {  if (typeof num !== 'number') {    throw new TypeError(`Expected number but got: ${typeof num}`);  }  return num * num;}try {  square('8');} catch (err) {  console.log(err.message); // Expected number but got: string}
 ```
 
 #### Колбэк с первым аргументом-ошибкой
@@ -70,13 +48,13 @@ try {  
 
 Node.js использует колбэк с первым аргументом-ошибкой в большинстве асинхронных методов, чтобы гарантировать проверку ошибок до результатов операции. Колбэк обычно является последним аргументом функции, инициирующей асинхронную операцию, и вызывается один раз при возникновении ошибки или получении результата:
 
-```js
+```
 function (err, result) {}
 ```
 
 Первый аргумент зарезервирован для объекта ошибки. Если ошибка возникает в ходе асинхронной операции, она доступна через аргумент `err` при неопределённом результате. Однако, если ошибки не возникает, `err` будет иметь значение `null` или `undefined`, а `result` будет содержать ожидаемый результат операции. Этот шаблон работает, если прочитать содержимое файла с помощью встроенного метода `fs.readFile ():`
 
-```js
+```
 const fs = require('fs');
 fs.readFile('/path/to/file.txt', (err, result) => {
   if (err) {
@@ -94,30 +72,15 @@ fs.readFile('/path/to/file.txt', (err, result) => {
 
 Чтобы использовать шаблон колбэка с первым аргументом-ошибкой в собственных асинхронных функциях, нужно принять функцию в качестве последнего аргумента и вызвать её:
 
-```js
-function square(num, callback) {  
-	if (typeof callback !== 'function') {    
-		throw new TypeError(`Callback must be a function. Got: ${typeof callback}`);  
-	}  
-	// simulate async operation  
-	setTimeout(() => {    
-		if (typeof num !== 'number') {      
-		// if an error occurs, it is passed as the first argument to the callback      
-			callback(new TypeError(`Expected number but got: ${typeof num}`));      
-			return;    
-		}    
-	
-		const result = num * num;    // callback is invoked after the operation completes with the result    
-		callback(null, result);  
-	}, 100);
-}
+```
+function square(num, callback) {  if (typeof callback !== 'function') {    throw new TypeError(`Callback must be a function. Got: ${typeof callback}`);  }  // simulate async operation  setTimeout(() => {    if (typeof num !== 'number') {      // if an error occurs, it is passed as the first argument to the callback      callback(new TypeError(`Expected number but got: ${typeof num}`));      return;    }    const result = num * num;    // callback is invoked after the operation completes with the result    callback(null, result);  }, 100);}
 ```
 
 Любой вызывающий функцию `square` должен пройти через колбэк, чтобы получить доступ к нужному результату или ошибке.
 
 Не нужно непосредственно обрабатывать ошибку в функции колбэка. Её можно распространить вверх по стеку, передав на другой колбэк. Но сначала убедитесь, что вы не генерируете исключение внутри функции. Асинхронное исключение невозможно отследить, потому что окружающий блок `try / catch` завершается до выполнения колбэка. Следовательно, исключение будет распространяться на вершину стека, что приведёт к завершению работы приложения. Исключение — когда обработчик зарегистрирован для `process.on ('uncaughtException')`.
 
-```js
+```
 try {
   square('8', (err, result) => {
     if (err) {
@@ -137,19 +100,19 @@ try {
 
 Обещания в JavaScript — это актуальный способ выполнения асинхронных операций в Node.js. Они предпочтительнее колбэков из-за лучшего потока, который соответствует современным способам анализа программ, особенно с шаблоном `async / await`. Любой API-интерфейс Node.js, использующий колбэки с ошибкой для асинхронной обработки ошибок, может быть преобразован в обещания с помощью встроенного метода `util.promisify ()`. Например, заставить метод `fs.readFile ()` использовать обещания можно так:
 
-```js
+```
 const fs = require('fs');const util = require('util');const readFile = util.promisify(fs.readFile);
 ```
 
 Переменная `readFile` — это версия `fs.readFile ()` с обещаниями, в которой отклонения обещаний используются для сообщения об ошибках. Эти ошибки можно отследить, связав метод `catch`:
 
-```js
+```
 readFile('/path/to/file.txt')  .then((result) => console.log(result))  .catch((err) => console.error(err));
 ```
 
 Также можно использовать обещанные API в функциях `async`. Так выглядит основной способ использования обещаний в современном JavaScript: в нём код читается как синхронный, и для обработки ошибок применяют знакомый механизм `try / catch`. Перед асинхронным запуском важно использовать `await`, чтобы обещание было выполнено или отклонено до того, как функция возобновит выполнение. При отклонении обещания выражение `await` выбрасывает отклонённое значение, которое впоследствии попадает в окружающий блок `catch`.
 
-```js
+```
 (async function callReadFile() {
   try {
     const result = await readFile('/path/to/file.txt');
@@ -160,73 +123,26 @@ readFile('/path/to/file.txt')  .then((result) => console.log(result))  .catc
 })();
 ```
 
-Обещания можно использовать в асинхронных функциях, возвращая обещание из функции и помещая код функции в обратный вызов обещания. Если есть ошибка, её стоит отклонить (reject) с помощью объекта Error. В противном случае можно разрешить (resolve) обещание с результатом, чтобы оно было доступно в цепочке метода `.then` или напрямую как значение функции `async` при использовании `async / await`.
+Обещанияможно использовать в асинхронных функциях, возвращая обещание из функции и помещая код функции в обратный вызов обещания. Если есть ошибка, её стоит отклонить (reject) с помощью объекта Error. В противном случае можно разрешить (resolve) обещание с результатом, чтобы оно было доступно в цепочке метода `.then` или напрямую как значение функции `async` при использовании `async / await`.
 
-```js
-function square(num) {  
-	return new Promise((resolve, reject) => {    
-		setTimeout(() => {      
-			if (typeof num !== 'number') {        
-				reject(new TypeError(`Expected number but got: ${typeof num}`));      
-			}      
-			const result = num * num;      
-			resolve(result);    
-		}, 100);  
-	});
-}
-
-square('8')  
-	.then((result) => console.log(result))  
-	.catch((err) => console.error(err));
+```
+function square(num) {  return new Promise((resolve, reject) => {    setTimeout(() => {      if (typeof num !== 'number') {        reject(new TypeError(`Expected number but got: ${typeof num}`));      }      const result = num * num;      resolve(result);    }, 100);  });}square('8')  .then((result) => console.log(result))  .catch((err) => console.error(err));
 ```
 
 #### Источники событий
 
 Другой шаблон, подходящий для работы с длительными асинхронными операциями, которые могут приводить к множественным ошибкам или результатам, — это возврат `EventEmitter` из функции и выдача события как для успешного, так и для неудачного случая:
 
-```js
-const { EventEmitter } = require('events');
-
-function emitCount() {  
-	const emitter = new EventEmitter();  
-	let count = 0;  // Async operation  
-	const interval = setInterval(() => {    
-		count++;    
-		if (count % 4 == 0) {      
-			emitter.emit(        
-				'error',        
-				new Error(`Something went wrong on count: ${count}`)     
-			);      
-			return;    
-		}    
-		emitter.emit('success', count);    
-		if (count === 10) {      
-			clearInterval(interval);      
-			emitter.emit('end');    
-		}  
-	}, 1000);  
-	return emitter;
-}
+```
+const { EventEmitter } = require('events');function emitCount() {  const emitter = new EventEmitter();  let count = 0;  // Async operation  const interval = setInterval(() => {    count++;    if (count % 4 == 0) {      emitter.emit(        'error',        new Error(`Something went wrong on count: ${count}`)      );      return;    }    emitter.emit('success', count);    if (count === 10) {      clearInterval(interval);      emitter.emit('end');    }  }, 1000);  return emitter;}
 ```
 
 Функция `emitCount ()` возвращает новый эмиттер событий, который сообщает об успешном исходе в асинхронной операции. Она увеличивает значение переменной `count` и каждую секунду генерирует событие успеха и событие ошибки, если значение `count` делится на 4. Когда `count` достигает 10, генерируется событие завершения. Этот шаблон позволяет передавать результаты по мере их поступления вместо ожидания завершения всей операции.
 
 Вот как можно отслеживать и реагировать на каждое из событий, генерируемых функцией `emitCount ()`:
 
-```js
-const counter = emitCount();
-
-counter.on('success', (count) => {  
-	console.log(`Count is: ${count}`);
-});
-
-counter.on('error', (err) => {  
-	console.error(err.message);
-});
-
-counter.on('end', () => {  
-	console.info('Counter has ended');
-});
+```
+const counter = emitCount();counter.on('success', (count) => {  console.log(`Count is: ${count}`);});counter.on('error', (err) => {  console.error(err.message);});counter.on('end', () => {  console.info('Counter has ended');});
 ```
 
 ![](https://habrastorage.org/getpro/habr/upload_files/f38/0d3/26a/f380d326af0512314bfcbeddbfc28f3a.gif)
@@ -243,41 +159,14 @@ counter.on('end', () => {  
 
 Вот как можно расширить встроенный объект `Error` в Node.js:
 
-```js
-class ApplicationError extends Error {  
-	constructor(message) {    
-		super(message);    // name is set to the name of the class    
-		this.name = this.constructor.name;  
-	}
-}
-
-class ValidationError extends ApplicationError {  
-	constructor(message, cause) {    
-		super(message);    
-		this.cause = cause  
-	}
-}
+```
+class ApplicationError extends Error {  constructor(message) {    super(message);    // name is set to the name of the class    this.name = this.constructor.name;  }}class ValidationError extends ApplicationError {  constructor(message, cause) {    super(message);    this.cause = cause  }}
 ```
 
 Класс `ApplicationError` — общая ошибка, а класс `ValidationError` представляет любую ошибку, возникающую при проверке ввода данных пользователем. Он наследуется от класса `ApplicationError` и дополняет его свойством `cause` для указания ввода, вызвавшего ошибку. Пользовательские классы ошибки можно использовать, как и обычные:
 
-```js
-function validateInput(input) {  
-	if (!input) {    
-		throw new ValidationError('Only truthy inputs allowed', input);  
-	}  
-	return input;
-}
-
-try {  
-	validateInput(userJson);
-} catch (err) {  
-	if (err instanceof ValidationError) {    
-		console.error(`Validation error: ${err.message}, caused by: ${err.cause}`);    
-		return;  
-	}  
-	
-console.error(`Other error: ${err.message}`);}
+```
+function validateInput(input) {  if (!input) {    throw new ValidationError('Only truthy inputs allowed', input);  }  return input;}try {  validateInput(userJson);} catch (err) {  if (err instanceof ValidationError) {    console.error(`Validation error: ${err.message}, caused by: ${err.cause}`);    return;  }  console.error(`Other error: ${err.message}`);}
 ```
 
 ![](https://habrastorage.org/r/w1560/getpro/habr/upload_files/787/0aa/291/7870aa291420761ec7706ef19dba5bee.png)
@@ -364,83 +253,24 @@ TypeScript — это строго типизированное надмноже
 
 Неперехваченные исключения и необработанные отклонения обещаний вызываются ошибками программиста. Событие `uncaughtException` генерируется, когда исключение не перехватывается до того как достигнет цикла обработки событий. При обнаружении неперехваченного исключения приложение немедленно выходит из строя. Для переопределения такого поведения всегда можно добавить обработчик события:
 
-```js
-// unsafe
-process.on('uncaughtException', (err) => {  
-	console.error(err);
-});
+```
+// unsafeprocess.on('uncaughtException', (err) => {  console.error(err);});
 ```
 
 Но неперехваченное исключение указывает на то, что приложение находится в неопределённом состоянии. Поэтому попытка возобновить работу в обычном режиме без восстановления после ошибки небезопасна и может привести к утечке памяти и зависанию сокетов. Лучше использовать обработчик `uncaught Exception` для очистки всех выделенных ресурсов, закрытия соединений и ведения лога ошибок для оценки перед завершением процесса.
 
-```js
-// better
-process.on('uncaughtException', (err) => {  
-	Honeybadger.notify(error); // log the error in a permanent storage  
-	// attempt a gracefully shutdown  
-	server.close(() => {    
-		process.exit(1); // then exit  
-	});  
-	// If a graceful shutdown is not achieved after 1 second,  
-	// shut down the process completely  
-	setTimeout(() => {    
-		process.abort(); // exit immediately and generate a core dump file  
-	}, 1000).unref()
-});
+```
+// betterprocess.on('uncaughtException', (err) => {  Honeybadger.notify(error); // log the error in a permanent storage  // attempt a gracefully shutdown  server.close(() => {    process.exit(1); // then exit  });  // If a graceful shutdown is not achieved after 1 second,  // shut down the process completely  setTimeout(() => {    process.abort(); // exit immediately and generate a core dump file  }, 1000).unref()});
 ```
 
 Событие `unhandledRejection` генерируется, когда отклонённое обещание не обрабатывается блоком `catch`. В отличие от `uncaughtException`, эти события не вызывают немедленного сбоя приложения. Однако необработанные отклонения обещаний сейчас признаны устаревшими и могут немедленно завершить процесс в следующих релизах Node.js. Отслеживать необработанные отклонения обещаний можно с помощью прослушивателя событий `unhandledRejection`:
 
-```js
-process.on('unhandledRejection', (reason, promise) => {  
-	Honeybadger.notify({    
-		message: 'Unhandled promise rejection',    
-		params: {      
-			promise,      
-			reason,    
-		},  
-	});  
-	
-	server.close(() => {    
-		process.exit(1);  
-	});  
-	
-	setTimeout(() => {    
-		process.abort();  
-	}, 1000).unref()
-});
+```
+process.on('unhandledRejection', (reason, promise) => {  Honeybadger.notify({    message: 'Unhandled promise rejection',    params: {      promise,      reason,    },  });  server.close(() => {    process.exit(1);  });  setTimeout(() => {    process.abort();  }, 1000).unref()});
 ```
 
 Серверы необходимо запускать с помощью диспетчера процессов, который автоматически перезапустит их в случае сбоя. Распространённый вариант — [PM2](https://www.npmjs.com/package/pm2), но для Linux существуют также `systemd` и `upstart`, а пользователи Docker могут использовать собственную [политику перезапуска](https://docs.docker.com/engine/reference/run/#restart-policies---restart). По завершении всех процессов стабильное обслуживание будет восстановлено почти мгновенно, а у вас будт информация о неперехваченном исключении. Можно запутсить несколько процессов и применить балансировщик нагрузки для распределения входящих запросов. Это поможет предотвратить простои.
 
 Централизованная отчётность об ошибках
 
-Ни одна стратегия обработки ошибок не будет полной без надёжной стратегии ведения журнала ошибок. Когда происходит сбой, важно узаписать как можно больше информации о проблеме. Централизация логов позволяет оценить, что происходит в коде. 
-
-[Honeybadger](https://www.honeybadger.io/tour/) предоставляет всё необходимое для отслеживания ошибок. Интегрируется так:
-
-**Установите пакет**
-
-Используйте npm для установки пакета:
-
-`$ npm install @honeybadger-io/js --save`
-
-**Импортируйте библиотеку**
-
-Импортируйте библиотеку и настройте её с помощью ключа API, чтобы получать сообщения об ошибках:
-
-```js
-const Honeybadger = require('@honeybadger-io/js');
-Honeybadger.configure({
-  apiKey: '[ YOUR API KEY HERE ]'
-});
-Сообщите об ошибках
-Метоодом notify ():
-try {
-  // ...error producing code
-} catch(error) {
-  Honeybadger.notify(error);
-}
-```
-
-Просмотрите [полную документацию](https://docs.honeybadger.io/lib/javascript/integration/node.html) или ознакомьтесь с [образцом](https://github.com/honeybadger-io/crywolf-node) Node.js / Express на GitHub.
+Ни одна стратегия обработки ошибок не будет полной без надёжной стратегии ведения журнала ошибок. Когда происходит сбой, важно узаписать как можно больше информации о проблеме. Централизация логов позволяет оценить, что происходит в коде.
